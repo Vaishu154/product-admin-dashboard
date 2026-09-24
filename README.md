@@ -318,7 +318,7 @@ _https://github.com/Vaishu154/product-admin-dashboard_
 ## Live Demo
 
 **Live application:**  
-_To be added after deployment._
+_https://product-admin-dashboard-mu-eight.vercel.app/_
 
 ## Notes
 
