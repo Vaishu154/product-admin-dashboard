@@ -128,49 +128,6 @@ The URL stores dashboard state such as:
 
 Invalid query values are sanitized to safe defaults so direct URLs do not cause application crashes.
 
-## Project Architecture
-
-```text
-product-admin-dashboard/
-├── app/
-│   ├── globals.css
-│   ├── layout.js
-│   ├── page.jsx
-│   ├── providers.jsx
-│   ├── login/
-│   │   └── page.jsx
-│   └── products/
-│       ├── layout.jsx
-│       ├── page.jsx
-│       ├── new/
-│       │   └── page.jsx
-│       └── [id]/
-│           ├── page.jsx
-│           └── edit/
-│               └── page.jsx
-├── components/
-│   ├── auth/
-│   ├── common/
-│   ├── layout/
-│   └── products/
-├── context/
-│   ├── AuthContext.jsx
-│   └── ProductSessionContext.jsx
-├── hooks/
-│   └── useDebounce.js
-├── services/
-│   ├── axios.js
-│   ├── authApi.js
-│   └── productApi.js
-└── utils/
-    ├── authStorage.js
-    ├── errors.js
-    ├── pagination.js
-    ├── productHelpers.js
-    ├── urlParams.js
-    └── validation.js
-```
-
 ## Setup & Installation
 
 ### Prerequisites
@@ -312,20 +269,6 @@ Dashboard state is synchronized with URL query parameters so users can refresh o
 
 `ProductSessionContext` stores temporary CRUD changes that cannot be persisted by DummyJSON. Session-added products are kept together rather than replacing previously added products.
 
-## Edge Cases Handled
-
-- Rapid repeated Login, Save, and Delete actions.
-- Stale search responses.
-- Search and category filtering limitations.
-- Invalid or negative URL parameters.
-- Out-of-range pagination.
-- Missing or broken product images.
-- Empty search results.
-- Empty reviews.
-- Direct access to protected routes.
-- Invalid or deleted product IDs.
-- Multiple session-created products.
-
 ## Problems Encountered & Solutions
 
 ### Session-Created Product CRUD
@@ -367,38 +310,10 @@ npx --no-install next build
 
 The Next.js production build completed successfully.
 
-## Assignment Completion Checklist
-
-- [x] Next.js App Router project setup
-- [x] React and Tailwind CSS
-- [x] Shared Axios instance
-- [x] DummyJSON authentication
-- [x] Login and logout
-- [x] Protected product routes
-- [x] Product listing
-- [x] Desktop table and mobile cards
-- [x] Pagination with 10, 20, and 50 page sizes
-- [x] Search with 400ms debounce
-- [x] Request cancellation and stale-response protection
-- [x] Category filtering
-- [x] Sorting by price, rating, and title
-- [x] Product details and reviews
-- [x] Add product
-- [x] Edit product
-- [x] Delete product with confirmation
-- [x] Session CRUD handling for multiple added products
-- [x] Loading, empty, and error states
-- [x] Retry actions
-- [x] Responsive UI
-- [x] URL query-state synchronization
-- [x] Invalid URL parameter handling
-- [x] ESLint verification
-- [x] Production build verification
-
 ## GitHub Repository
 
 **Repository:**  
-_To be added after pushing the project to GitHub._
+_https://github.com/Vaishu154/product-admin-dashboard_
 
 ## Live Demo
 
