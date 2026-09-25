@@ -1,3 +1,11 @@
+/**
+ * Error Handling Utility
+ *
+ * Translates Axios HTTP response errors, network timeouts, and request cancellations
+ * into user-friendly error strings.
+ */
+
+/** Extracts readable message from error object or HTTP status code */
 export function getErrorMessage(error) {
   if (!error) {
     return "Something went wrong. Please try again.";
@@ -37,6 +45,7 @@ export function getErrorMessage(error) {
   return apiMessage || "Something went wrong. Please try again.";
 }
 
+/** Helper checking if error was triggered by AbortController cancellation */
 export function isCanceledError(error) {
   return (
     error?.code === "ERR_CANCELED" ||

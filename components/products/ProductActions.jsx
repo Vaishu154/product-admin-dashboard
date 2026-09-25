@@ -1,28 +1,35 @@
 "use client";
 
 import Link from "next/link";
+import { EyeIcon, PencilIcon, TrashIcon } from "@/components/common/Icons";
 
 export default function ProductActions({ productId, onDelete }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex items-center gap-1.5">
       <Link
         href={`/products/${productId}`}
-        className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+        className="inline-flex items-center justify-center rounded-lg bg-blue-50 p-1.5 text-blue-600 transition hover:bg-blue-100 active:scale-95"
+        aria-label={`View product ${productId}`}
+        title="View details"
       >
-        View
+        <EyeIcon className="h-4 w-4" />
       </Link>
       <Link
         href={`/products/${productId}/edit`}
-        className="rounded-md border border-indigo-200 px-2.5 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+        className="inline-flex items-center justify-center rounded-lg bg-blue-50 p-1.5 text-blue-600 transition hover:bg-blue-100 active:scale-95"
+        aria-label={`Edit product ${productId}`}
+        title="Edit product"
       >
-        Edit
+        <PencilIcon className="h-4 w-4" />
       </Link>
       <button
         type="button"
         onClick={() => onDelete(productId)}
-        className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
+        className="inline-flex items-center justify-center rounded-lg bg-red-50 p-1.5 text-red-500 transition hover:bg-red-100 active:scale-95"
+        aria-label={`Delete product ${productId}`}
+        title="Delete product"
       >
-        Delete
+        <TrashIcon className="h-4 w-4" />
       </button>
     </div>
   );

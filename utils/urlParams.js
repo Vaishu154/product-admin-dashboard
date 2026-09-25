@@ -1,3 +1,10 @@
+/**
+ * URL Query Parameter Serializer & Parser
+ *
+ * Synchronizes pagination (page, pageSize), search query, category filter,
+ * and sort order with the browser's URL address bar.
+ */
+
 import { DEFAULT_PAGE_SIZE, PAGE_SIZES } from "./pagination";
 
 export const SORT_OPTIONS = [
@@ -22,6 +29,7 @@ function toPositiveInt(value) {
   return parsed;
 }
 
+/** Parses string sort parameter into sortBy and order */
 export function parseSort(value) {
   if (!value || !SORT_VALUES.has(value)) {
     return null;
@@ -29,6 +37,7 @@ export function parseSort(value) {
   return SORT_OPTIONS.find((option) => option.value === value) || null;
 }
 
+/** Parses current URL search params into clean query object */
 export function parseProductQuery(searchParams) {
   const page = toPositiveInt(searchParams.get("page")) || 1;
   const pageSizeRaw = toPositiveInt(searchParams.get("pageSize"));
@@ -57,6 +66,7 @@ export function parseProductQuery(searchParams) {
   };
 }
 
+/** Serializes query object back into standard URL query string */
 export function buildProductQuery({
   page,
   pageSize,

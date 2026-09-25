@@ -1,3 +1,11 @@
+/**
+ * Product Data Normalization & Session Overlay Utility
+ *
+ * Provides data sanitization for API product objects and merges transient
+ * session-created, updated, or deleted items over standard DummyJSON API results.
+ */
+
+/** Normalizes a raw product object from API/form into consistent shape */
 export function normalizeProduct(product) {
   if (!product || typeof product !== "object") {
     return null;
@@ -27,6 +35,7 @@ export function normalizeProduct(product) {
   };
 }
 
+/** Normalizes an array of product list response objects */
 export function normalizeProductList(data) {
   const products = Array.isArray(data?.products)
     ? data.products.map(normalizeProduct).filter(Boolean)
@@ -40,6 +49,7 @@ export function normalizeProductList(data) {
   };
 }
 
+/** Normalizes category array format */
 export function normalizeCategories(data) {
   if (!Array.isArray(data)) {
     return [];
@@ -63,6 +73,10 @@ export function normalizeCategories(data) {
     .filter(Boolean);
 }
 
+/**
+ * Merges session additions, edits, and deletions over REST response data.
+ * Caps overview items at 50 max for default overview display.
+ */
 export function applySessionOverlay(apiProducts, apiTotal, overlay, query) {
   const deletedIds = new Set((overlay.deletedIds || []).map(String));
   const deletedProducts = overlay.deletedProducts || [];
@@ -107,9 +121,11 @@ export function applySessionOverlay(apiProducts, apiTotal, overlay, query) {
     deletedDeduction = deletedProducts.filter(matchesQuery).length;
   }
 
+  const isDefaultOverview = !search && !category;
+  const rawTotal = apiTotal - deletedDeduction + matchingAdded.length;
   const adjustedTotal = Math.max(
     0,
-    apiTotal - deletedDeduction + matchingAdded.length
+    isDefaultOverview ? Math.min(50, rawTotal) : rawTotal
   );
 
   return {
@@ -118,6 +134,7 @@ export function applySessionOverlay(apiProducts, apiTotal, overlay, query) {
   };
 }
 
+/** Returns fallback product image thumbnail */
 export function getProductImage(product) {
   return product?.thumbnail || product?.images?.[0] || "";
 }

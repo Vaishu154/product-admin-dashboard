@@ -6,18 +6,20 @@ import Link from "next/link";
 import ProductForm from "@/components/products/ProductForm";
 import LoadingState from "@/components/common/LoadingState";
 import ErrorState from "@/components/common/ErrorState";
-import { getCategories, addProduct } from "@/services/productApi";
+import { ArrowLeftIcon } from "@/components/common/Icons";
+import { getCategories, addProduct, getProductsByCategory } from "@/services/productApi";
 import { useProductSession } from "@/context/ProductSessionContext";
+import { useToast } from "@/context/ToastContext";
 
 export default function NewProductPage() {
   const router = useRouter();
-  const { addSessionProduct } = useProductSession();
+  const toast = useToast();
+  const { overlay, addSessionProduct } = useProductSession();
   const [categories, setCategories] = useState([]);
   const [categoriesError, setCategoriesError] = useState("");
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   async function loadCategories() {
     setIsLoadingCategories(true);
@@ -41,13 +43,60 @@ export default function NewProductPage() {
     }
     setIsSubmitting(true);
     setServerError("");
+
+    const targetTitle = values.title.trim().toLowerCase();
+    const targetCategory = values.category.trim().toLowerCase();
+
+    // 1. Check duplicate within session-added products
+    const duplicateInSession = overlay.added?.some(
+      (item) =>
+        item.title?.trim().toLowerCase() === targetTitle &&
+        item.category?.trim().toLowerCase() === targetCategory
+    );
+
+    if (duplicateInSession) {
+      const msg = "Product with this title already exists in this category.";
+      toast.error(msg);
+      setServerError(msg);
+      setIsSubmitting(false);
+      return;
+    }
+
+    // 2. Check duplicate within existing DummyJSON products for this category
+    try {
+      const categoryData = await getProductsByCategory({
+        category: values.category.trim(),
+        limit: 100,
+      });
+
+      const duplicateInApi = categoryData.products?.some((item) => {
+        const isDeleted = overlay.deletedIds?.some((dId) => String(dId) === String(item.id));
+        if (isDeleted) {
+          return false;
+        }
+        return item.title?.trim().toLowerCase() === targetTitle;
+      });
+
+      if (duplicateInApi) {
+        const msg = "Product with this title already exists in this category.";
+        toast.error(msg);
+        setServerError(msg);
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (err) {
+      // If category fetch fails, proceed with server-side creation
+    }
+
     try {
       const created = await addProduct(values);
       addSessionProduct(created);
-      setSuccessMessage("Product created for this session.");
+      toast.success("Product created successfully.");
       router.push("/products");
     } catch (error) {
-      setServerError(error.appMessage || "Unable to create product.");
+      const msg = error.appMessage || "Unable to create product.";
+      setServerError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -56,20 +105,15 @@ export default function NewProductPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition mb-3"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">Add product</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          DummyJSON will simulate creation. The new product is kept in this session only.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Add New Product</h1>
       </div>
-
-      {successMessage ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {successMessage}
-        </p>
-      ) : null}
 
       {isLoadingCategories ? (
         <LoadingState message="Loading categories..." />
@@ -80,10 +124,10 @@ export default function NewProductPage() {
           onRetry={loadCategories}
         />
       ) : (
-        <div className="rounded-lg border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs">
           <ProductForm
             categories={categories}
-            submitLabel="Save product"
+            submitLabel="Create Product"
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             serverError={serverError}

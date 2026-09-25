@@ -7,15 +7,18 @@ import ProductDetails from "@/components/products/ProductDetails";
 import LoadingState from "@/components/common/LoadingState";
 import ErrorState from "@/components/common/ErrorState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
+import { ArrowLeftIcon, PencilIcon, TrashIcon } from "@/components/common/Icons";
 import { deleteProduct, getProductById } from "@/services/productApi";
 import { useProductSession } from "@/context/ProductSessionContext";
+import { useToast } from "@/context/ToastContext";
 import { normalizeProduct } from "@/utils/productHelpers";
 
 export default function ProductDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const toast = useToast();
   const id = params?.id;
-  const { getSessionProduct, deleteSessionProduct } = useProductSession();
+  const { overlay, getSessionProduct, deleteSessionProduct } = useProductSession();
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,7 +81,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     loadProduct();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, overlay]);
 
   async function handleDelete() {
     if (isDeleting) {
@@ -92,23 +95,30 @@ export default function ProductDetailsPage() {
         await deleteProduct(id);
       }
       deleteSessionProduct(Number.isFinite(Number(id)) ? Number(id) : id, product);
+      toast.success("Product deleted successfully.");
       router.push("/products");
     } catch (err) {
-      setDeleteError(err.appMessage || "Unable to delete this product.");
+      const msg = err.appMessage || "Unable to delete this product.";
+      setDeleteError(msg);
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
   }
 
   if (isLoading) {
-    return <LoadingState message="Loading product..." />;
+    return <LoadingState message="Loading product details..." />;
   }
 
   if (notFound) {
     return (
-      <div className="space-y-4">
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+      <div className="mx-auto max-w-4xl space-y-4">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
         <ErrorState title="Product not found." message="This product ID does not exist." />
       </div>
@@ -117,9 +127,13 @@ export default function ProductDetailsPage() {
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+      <div className="mx-auto max-w-4xl space-y-4">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
         <ErrorState title="Unable to load product." message={error} onRetry={loadProduct} />
       </div>
@@ -127,35 +141,46 @@ export default function ProductDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Link
             href={`/products/${id}/edit`}
-            className="rounded-md border border-indigo-200 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
+            className="inline-flex items-center justify-center rounded-xl bg-blue-50 p-2 text-blue-600 transition hover:bg-blue-100 cursor-pointer active:scale-95 shadow-2xs"
+            aria-label="Edit product"
+            title="Edit product"
           >
-            Edit
+            <PencilIcon className="h-4 w-4" />
           </Link>
           <button
             type="button"
             onClick={() => setShowDelete(true)}
-            className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50"
+            className="inline-flex items-center justify-center rounded-xl bg-red-50 p-2 text-red-500 transition hover:bg-red-100 cursor-pointer active:scale-95 shadow-2xs"
+            aria-label="Delete product"
+            title="Delete product"
           >
-            Delete
+            <TrashIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <ProductDetails product={product} />
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs">
+        <ProductDetails product={product} />
+      </div>
+
       {deleteError ? <p className="text-sm text-red-600">{deleteError}</p> : null}
 
       <ConfirmDialog
         open={showDelete}
-        title="Delete product"
-        message="Are you sure you want to delete this product?"
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
         isConfirming={isDeleting}
         onCancel={() => !isDeleting && setShowDelete(false)}
         onConfirm={handleDelete}

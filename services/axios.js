@@ -1,3 +1,13 @@
+/**
+ * Shared Axios Instance Setup
+ *
+ * Configures the base HTTP client for all API interactions with DummyJSON.
+ * Features:
+ * - Base URL: https://dummyjson.com
+ * - Request Interceptor: Automatically attaches the stored Bearer token to headers.
+ * - Response Interceptor: Formats API error messages and handles 401 unauthorized responses.
+ */
+
 import axios from "axios";
 import { getAccessToken, clearStoredAuth } from "@/utils/authStorage";
 import { getErrorMessage } from "@/utils/errors";
@@ -10,6 +20,7 @@ const api = axios.create({
   },
 });
 
+// Inject bearer token into outgoing API requests
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
   if (token) {
@@ -18,6 +29,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle error responses and redirect to /login on 401 Unauthorized
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -27,11 +39,7 @@ api.interceptors.response.use(
     const requestUrl = error.config?.url || "";
     const isLoginRequest = requestUrl.includes("/auth/login");
 
-    if (
-      status === 401 &&
-      !isLoginRequest &&
-      typeof window !== "undefined"
-    ) {
+    if (status === 401 && !isLoginRequest && typeof window !== "undefined") {
       clearStoredAuth();
       window.dispatchEvent(new Event("auth:unauthorized"));
 

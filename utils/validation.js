@@ -1,3 +1,10 @@
+/**
+ * Form Validation Utility
+ *
+ * Validates login credentials and product creation/editing form fields.
+ */
+
+/** Validates Product creation/edit form values */
 export function validateProductForm(values) {
   const errors = {};
   const title = (values.title || "").trim();
@@ -14,11 +21,8 @@ export function validateProductForm(values) {
     errors.title = "Title must be 120 characters or fewer.";
   }
 
-  if (!description) {
-    errors.description = "Description is required.";
-  } else if (description.length < 10) {
-    errors.description = "Description must be at least 10 characters.";
-  } else if (description.length > 1000) {
+  // Description is optional; validate max length if provided
+  if (description && description.length > 1000) {
     errors.description = "Description must be 1000 characters or fewer.";
   }
 
@@ -51,15 +55,22 @@ export function validateProductForm(values) {
   return errors;
 }
 
+/** Validates Login credentials and checks for unwanted whitespace */
 export function validateLoginForm(values) {
   const errors = {};
+  const rawUsername = values.username || "";
+  const rawPassword = values.password || "";
 
-  if (!(values.username || "").trim()) {
+  if (!rawUsername.trim()) {
     errors.username = "Username is required.";
+  } else if (/\s/.test(rawUsername)) {
+    errors.username = "Username cannot contain spaces.";
   }
 
-  if (!(values.password || "").trim()) {
+  if (!rawPassword.trim()) {
     errors.password = "Password is required.";
+  } else if (/\s/.test(rawPassword)) {
+    errors.password = "Password cannot contain spaces.";
   }
 
   return errors;

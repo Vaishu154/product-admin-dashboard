@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/common/Icons";
+
 export default function Pagination({
   page,
   totalPages,
@@ -9,19 +11,23 @@ export default function Pagination({
   const pages = getPageNumbers(page, totalPages);
 
   return (
-    <nav aria-label="Product pagination" className="flex flex-wrap items-center gap-2">
+    <nav aria-label="Product pagination" className="flex items-center gap-1.5">
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={disabled || page <= 1}
-        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800 disabled:pointer-events-none disabled:opacity-40"
+        aria-label="Previous page"
       >
-        Previous
+        <ChevronLeftIcon className="h-4 w-4" />
       </button>
 
       {pages.map((item, index) =>
         item === "..." ? (
-          <span key={`ellipsis-${index}`} className="px-1 text-slate-400">
+          <span
+            key={`ellipsis-${index}`}
+            className="flex h-8 w-8 items-center justify-center text-sm font-medium text-slate-400"
+          >
             ...
           </span>
         ) : (
@@ -31,11 +37,11 @@ export default function Pagination({
             onClick={() => onPageChange(item)}
             disabled={disabled}
             aria-current={item === page ? "page" : undefined}
-            className={`rounded-md px-3 py-1.5 text-sm ${
+            className={`flex h-8 min-w-[32px] px-2 items-center justify-center rounded-lg text-sm font-medium transition ${
               item === page
-                ? "bg-indigo-600 text-white"
-                : "border border-slate-300 text-slate-700 hover:bg-slate-50"
-            } disabled:cursor-not-allowed disabled:opacity-50`}
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            } disabled:pointer-events-none disabled:opacity-40`}
           >
             {item}
           </button>
@@ -46,9 +52,10 @@ export default function Pagination({
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={disabled || page >= totalPages}
-        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-2xs transition hover:bg-slate-50 hover:text-slate-800 disabled:pointer-events-none disabled:opacity-40"
+        aria-label="Next page"
       >
-        Next
+        <ChevronRightIcon className="h-4 w-4" />
       </button>
     </nav>
   );

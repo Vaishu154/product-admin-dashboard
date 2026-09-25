@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LoginForm from "@/components/auth/LoginForm";
 import LoadingState from "@/components/common/LoadingState";
+import { ShoppingCartIcon } from "@/components/common/Icons";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
@@ -17,26 +18,25 @@ export default function LoginPage() {
   }, [isAuthenticated, isInitializing, router]);
 
   if (isInitializing) {
-    return <LoadingState message="Checking authentication..." />;
+    return <LoadingState message="Checking authentication..." fullScreen />;
   }
 
   if (isAuthenticated) {
-    return <LoadingState message="Redirecting to products..." />;
+    return <LoadingState message="Redirecting to products..." fullScreen />;
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-900">Product Admin Login</h1>
-        <p className="mt-2 text-sm text-slate-600">
-          Use the DummyJSON demo account to open the dashboard.
-        </p>
-        <div className="mt-6">
-          <LoginForm />
+    <main className="flex min-h-screen w-full items-center justify-center bg-slate-50 p-4 sm:p-6">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20">
+            <ShoppingCartIcon className="h-6 w-6" />
+          </div>
+          <h1 className="mt-4 text-xl font-bold tracking-tight text-slate-900">
+            Sign in
+          </h1>
         </div>
-        <p className="mt-6 text-xs text-slate-500">
-          Demo username: emilys / Demo password: emilyspass
-        </p>
+        <LoginForm />
       </div>
     </main>
   );

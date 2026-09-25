@@ -1,5 +1,12 @@
+/**
+ * Authentication Storage Utility
+ *
+ * Provides safe localStorage getters and setters for persisted user auth state.
+ */
+
 export const AUTH_STORAGE_KEY = "product_admin_auth";
 
+/** Reads and parses stored authentication data from localStorage */
 export function getStoredAuth() {
   if (typeof window === "undefined") {
     return null;
@@ -31,6 +38,7 @@ export function getStoredAuth() {
   }
 }
 
+/** Saves auth payload to localStorage */
 export function setStoredAuth(auth) {
   if (typeof window === "undefined") {
     return;
@@ -39,10 +47,11 @@ export function setStoredAuth(auth) {
   try {
     window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
   } catch {
-    // localStorage can be unavailable in private mode
+    // localStorage can be unavailable in private browsing mode
   }
 }
 
+/** Removes auth data from localStorage */
 export function clearStoredAuth() {
   if (typeof window === "undefined") {
     return;
@@ -51,10 +60,11 @@ export function clearStoredAuth() {
   try {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
   } catch {
-    // ignore storage failures
+    // Ignore storage failures
   }
 }
 
+/** Convenience getter for current JWT access token */
 export function getAccessToken() {
   return getStoredAuth()?.accessToken || "";
 }

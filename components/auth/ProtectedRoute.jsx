@@ -9,12 +9,12 @@ export default function ProtectedRoute({ children }) {
   const { isAuthenticated, isInitializing } = useAuth();
 
   if (isInitializing) {
-    return <LoadingState message="Checking authentication..." />;
+    return <LoadingState message="Checking authentication..." fullScreen />;
   }
 
   if (!isAuthenticated) {
     router.replace("/login");
-    return <LoadingState message="Redirecting to login..." />;
+    return <LoadingState message="Redirecting to login..." fullScreen />;
   }
 
   return children;

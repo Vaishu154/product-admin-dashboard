@@ -16,5 +16,5 @@ export default function HomePage() {
     router.replace(isAuthenticated ? "/products" : "/login");
   }, [isAuthenticated, isInitializing, router]);
 
-  return <LoadingState message="Redirecting..." />;
+  return <LoadingState message="Redirecting..." fullScreen />;
 }

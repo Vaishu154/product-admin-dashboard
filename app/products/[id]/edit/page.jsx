@@ -6,6 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import ProductForm from "@/components/products/ProductForm";
 import LoadingState from "@/components/common/LoadingState";
 import ErrorState from "@/components/common/ErrorState";
+import { ArrowLeftIcon } from "@/components/common/Icons";
+import { useToast } from "@/context/ToastContext";
 import { getCategories, getProductById, updateProduct } from "@/services/productApi";
 import { useProductSession } from "@/context/ProductSessionContext";
 import { normalizeProduct } from "@/utils/productHelpers";
@@ -13,6 +15,7 @@ import { normalizeProduct } from "@/utils/productHelpers";
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
+  const toast = useToast();
   const id = params?.id;
   const { getSessionProduct, updateSessionProduct } = useProductSession();
   const [product, setProduct] = useState(null);
@@ -93,15 +96,19 @@ export default function EditProductPage() {
       if (session.isAdded) {
         const updated = normalizeProduct({ ...product, ...values, id: product.id });
         updateSessionProduct(updated);
+        toast.success("Product updated successfully.");
         router.push(`/products/${id}`);
         return;
       }
 
       const updated = await updateProduct(id, values);
       updateSessionProduct({ ...product, ...updated, ...values, id: product.id });
+      toast.success("Product updated successfully.");
       router.push(`/products/${id}`);
     } catch (err) {
-      setServerError(err.appMessage || "Unable to update product.");
+      const msg = err.appMessage || "Unable to update product.";
+      setServerError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -113,9 +120,13 @@ export default function EditProductPage() {
 
   if (notFound) {
     return (
-      <div className="space-y-4">
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+      <div className="mx-auto max-w-2xl space-y-4">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
         <ErrorState title="Product not found." message="This product cannot be edited because it does not exist." />
       </div>
@@ -124,9 +135,13 @@ export default function EditProductPage() {
 
   if (error) {
     return (
-      <div className="space-y-4">
-        <Link href="/products" className="text-sm text-indigo-700 hover:underline">
-          Back to products
+      <div className="mx-auto max-w-2xl space-y-4">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to products</span>
         </Link>
         <ErrorState title="Unable to load product." message={error} onRetry={loadData} />
       </div>
@@ -136,15 +151,16 @@ export default function EditProductPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <Link href={`/products/${id}`} className="text-sm text-indigo-700 hover:underline">
-          Back to product
+        <Link
+          href={`/products/${id}`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition mb-3"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span>Back to product</span>
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">Edit product</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          DummyJSON simulates updates. Changes are kept in this session only.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Edit Product</h1>
       </div>
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-xs">
         <ProductForm
           initialValues={{
             title: product.title,
@@ -154,7 +170,7 @@ export default function EditProductPage() {
             stock: product.stock,
           }}
           categories={categories}
-          submitLabel="Save changes"
+          submitLabel="Save Changes"
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           serverError={serverError}

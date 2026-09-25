@@ -1,5 +1,16 @@
+/**
+ * Authentication API Service
+ *
+ * Provides API functions for user authentication against DummyJSON REST endpoints.
+ */
+
 import api from "./axios";
 
+/**
+ * Sends a POST request to DummyJSON /auth/login
+ * @param {Object} credentials - { username, password }
+ * @returns {Promise<Object>} Formatted object containing accessToken, refreshToken, and user profile
+ */
 export async function loginRequest({ username, password }) {
   const { data } = await api.post("/auth/login", {
     username,

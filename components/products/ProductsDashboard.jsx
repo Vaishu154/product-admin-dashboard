@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "@/components/common/SearchBar";
 import CategoryFilter from "@/components/common/CategoryFilter";
-import SortControl from "@/components/common/SortControl";
 import PageSizeSelector from "@/components/common/PageSizeSelector";
 import Pagination from "@/components/common/Pagination";
 import LoadingState from "@/components/common/LoadingState";
@@ -13,6 +12,8 @@ import ErrorState from "@/components/common/ErrorState";
 import EmptyState from "@/components/common/EmptyState";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import ProductList from "@/components/products/ProductList";
+import { PlusIcon } from "@/components/common/Icons";
+import { useToast } from "@/context/ToastContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProductSession } from "@/context/ProductSessionContext";
 import {
@@ -31,6 +32,7 @@ export default function ProductsDashboard() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const toast = useToast();
   const query = parseProductQuery(searchParams);
   const {
     overlay,
@@ -53,7 +55,6 @@ export default function ProductsDashboard() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef(null);
@@ -64,29 +65,29 @@ export default function ProductsDashboard() {
       : "";
 
   const updateUrl = useCallback(
-  (next) => {
-    const queryString = buildProductQuery({
-      page: next.page ?? query.page,
-      pageSize: next.pageSize ?? query.pageSize,
-      search: next.search ?? query.search,
-      category: next.category ?? query.category,
-      sort: next.sort ?? query.sort,
-      delay: query.delay,
-    });
+    (next) => {
+      const queryString = buildProductQuery({
+        page: next.page ?? query.page,
+        pageSize: next.pageSize ?? query.pageSize,
+        search: next.search ?? query.search,
+        category: next.category ?? query.category,
+        sort: next.sort ?? query.sort,
+        delay: query.delay,
+      });
 
-    router.replace(queryString ? `${pathname}?${queryString}` : pathname);
-  },
-  [
-    pathname,
-    router,
-    query.page,
-    query.pageSize,
-    query.search,
-    query.category,
-    query.sort,
-    query.delay,
-  ]
-);
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname);
+    },
+    [
+      pathname,
+      router,
+      query.page,
+      query.pageSize,
+      query.search,
+      query.category,
+      query.sort,
+      query.delay,
+    ]
+  );
 
   useEffect(() => {
     setSearchInput(query.search);
@@ -167,6 +168,7 @@ export default function ProductsDashboard() {
 
       const merged = applySessionOverlay(response.products, response.total, overlay, {
         page: query.page,
+        pageSize: query.pageSize,
         search: query.search,
         category: validCategory,
       });
@@ -216,10 +218,11 @@ export default function ProductsDashboard() {
         products.find((p) => String(p.id) === String(deleteTarget)) ||
         getSessionProduct(deleteTarget)?.product;
       deleteSessionProduct(deleteTarget, targetProduct);
-      setSuccessMessage("Product deleted for this session. DummyJSON does not persist deletions.");
+      toast.success("Product deleted successfully.");
       setDeleteTarget(null);
     } catch (err) {
       setDeleteError(err.appMessage || "Unable to delete this product.");
+      toast.error(err.appMessage || "Unable to delete this product.");
     } finally {
       setIsDeleting(false);
     }
@@ -234,55 +237,42 @@ export default function ProductsDashboard() {
       : "No products found.";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Products</h1>
-          <p className="mt-1 text-sm text-slate-600">
-            Search, filter, sort, and manage DummyJSON products.
-          </p>
+    <div className="space-y-5">
+      {/* Controls bar: Search, Category, Page size, and Add Product button on the same line */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchBar value={searchInput} onChange={setSearchInput} />
+          <CategoryFilter
+            categories={categories}
+            value={validCategory}
+            onChange={(category) => updateUrl({ category, page: 1 })}
+            disabled={Boolean(searchInput || query.search)}
+            loading={categoriesLoading}
+            error={categoriesError}
+            onRetry={loadCategories}
+          />
+          <PageSizeSelector
+            value={query.pageSize}
+            onChange={(pageSize) => updateUrl({ pageSize, page: 1 })}
+          />
         </div>
+
         <Link
           href="/products/new"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs transition hover:bg-blue-700 active:scale-[0.99] shrink-0"
         >
-          Add product
+          <PlusIcon className="h-4 w-4" />
+          <span>Add Product</span>
         </Link>
       </div>
 
       {hasSessionChanges ? (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-          Add, edit, and delete changes are kept only for this browser session. Refreshing the page restores original DummyJSON data.
-        </p>
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-3.5 py-2 text-xs text-amber-800">
+          Product additions, edits, and deletions are preserved in this browser session. Refreshing will reset to initial data.
+        </div>
       ) : null}
 
-      {successMessage ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800" role="status">
-          {successMessage}
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap gap-4 rounded-lg border border-slate-200 bg-white p-4">
-        <SearchBar value={searchInput} onChange={setSearchInput} />
-        <CategoryFilter
-          categories={categories}
-          value={validCategory}
-          onChange={(category) => updateUrl({ category, page: 1 })}
-          disabled={Boolean(searchInput || query.search)}
-          loading={categoriesLoading}
-          error={categoriesError}
-          onRetry={loadCategories}
-        />
-        <SortControl
-          value={query.sort}
-          onChange={(sort) => updateUrl({ sort, page: 1 })}
-        />
-        <PageSizeSelector
-          value={query.pageSize}
-          onChange={(pageSize) => updateUrl({ pageSize, page: 1 })}
-        />
-      </div>
-
+      {/* Products Table / Cards */}
       {error ? (
         <ErrorState
           title="Unable to load products."
@@ -295,14 +285,20 @@ export default function ProductsDashboard() {
       ) : products.length === 0 ? (
         <EmptyState title="No products found." message={emptyMessage} />
       ) : (
-        <ProductList products={products} onDelete={setDeleteTarget} />
+        <ProductList
+          products={products}
+          onDelete={setDeleteTarget}
+          sort={query.sort}
+          onSort={(nextSort) => updateUrl({ sort: nextSort, page: 1 })}
+        />
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-slate-600">
+      {/* Bottom pagination & count footer */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+        <p className="text-sm font-medium text-slate-500">
           {total === 0
-            ? "Showing 0 of 0"
-            : `Showing ${range.start}–${range.end} of ${total}`}
+            ? "Showing 0 of 0 products"
+            : `Showing ${range.start}–${range.end} of ${total} products`}
         </p>
         <Pagination
           page={query.page}
@@ -312,10 +308,14 @@ export default function ProductsDashboard() {
         />
       </div>
 
+      <p className="text-center text-xs text-slate-400 pt-1 pb-2">
+        Note: Add, edit, and delete actions are simulated for this browser session. DummyJSON API does not persist changes to the server.
+      </p>
+
       <ConfirmDialog
         open={Boolean(deleteTarget)}
-        title="Delete product"
-        message="Are you sure you want to delete this product?"
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone."
         confirmLabel="Delete"
         cancelLabel="Cancel"
         isConfirming={isDeleting}
@@ -327,11 +327,6 @@ export default function ProductsDashboard() {
         }}
         onConfirm={handleConfirmDelete}
       />
-      {deleteError ? (
-        <p className="text-sm text-red-600" role="alert">
-          {deleteError}
-        </p>
-      ) : null}
     </div>
   );
 }
